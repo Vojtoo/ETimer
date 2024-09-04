@@ -1,0 +1,27 @@
+
+/*https://colorhunt.co/palette/16423c6a9c89c4dad2e9efec*/
+
+#time-span {
+    color: black;
+    text-align: center;
+    font-weight: bold;
+    font-size: 4rem;
+}
+body div.container-fluid {
+    background-color: #C4DAD2;
+}
+
+#timer-window{
+    background-color: #6A9C89;
+}
+
+#timer-window button{
+    margin: 10px;
+    background-color: #E9EFEC;
+}
+
+.gear-icon{
+    color: white;
+    font-size: 2rem;
+    margin: 10px;
+}

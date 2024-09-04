@@ -1,10 +1,17 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser
-import Html exposing (Html, button, div, h1, img, text)
-import Html.Attributes exposing (src)
-import Html.Events exposing (onClick)
+import Html exposing (Html, button, div, input, text)
+import Html.Attributes exposing (min, type_, value)
+import Html.Events exposing (onClick, onInput)
 import Time exposing (every)
+
+
+
+-- PORTS
+
+
+port sendRing : () -> Cmd msg
 
 
 
@@ -13,32 +20,19 @@ import Time exposing (every)
 
 type alias Model =
     { currentTime : ( Int, Int )
-    , baseTime : ( Int, Int )
+    , baseTime : Int
     , running : Bool
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { currentTime = ( 2, 0 )
-      , baseTime = ( 2, 0 )
-      , running = True
+    ( { currentTime = ( 1, 0 )
+      , baseTime = 1
+      , running = False
       }
     , Cmd.none
     )
-
-
-incrementTimeBySecond : ( Int, Int ) -> ( Int, Int )
-incrementTimeBySecond ( a, b ) =
-    if b + 1 == 60 then
-        if a + 1 == 60 then
-            ( 0, 0 )
-
-        else
-            ( a + 1, 0 )
-
-    else
-        ( a, b + 1 )
 
 
 decrementTimeBySecond : ( Int, Int ) -> ( Int, Int )
@@ -54,6 +48,19 @@ decrementTimeBySecond ( a, b ) =
         ( a, b - 1 )
 
 
+tick : Model -> ( Model, Cmd Msg )
+tick model =
+    let
+        newTime =
+            decrementTimeBySecond model.currentTime
+    in
+    if newTime == ( 0, 0 ) then
+        ( { model | currentTime = newTime, running = not model.running }, sendRing () )
+
+    else
+        ( { model | currentTime = newTime }, Cmd.none )
+
+
 
 ---- UPDATE ----
 
@@ -62,6 +69,7 @@ type Msg
     = Tick
     | ToggleTimer
     | ResetTimer
+    | ChangeBaseTime String
 
 
 subscriptions : Model -> Sub Msg
@@ -77,13 +85,32 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick ->
-            ( { model | currentTime = decrementTimeBySecond model.currentTime }, Cmd.none )
+            tick model
 
         ToggleTimer ->
             ( { model | running = not model.running }, Cmd.none )
 
         ResetTimer ->
-            ( { model | currentTime = model.baseTime, running = False }, Cmd.none )
+            ( { model | currentTime = ( model.baseTime, 0 ), running = False }, Cmd.none )
+
+        ChangeBaseTime intString ->
+            ( { model
+                | baseTime =
+                    String.toInt intString
+                        |> changeBaseTime model.baseTime
+              }
+            , Cmd.none
+            )
+
+
+changeBaseTime : Int -> Maybe Int -> Int
+changeBaseTime oldBaseTime mInt =
+    case mInt of
+        Nothing ->
+            oldBaseTime
+
+        Just a ->
+            a
 
 
 
@@ -99,8 +126,8 @@ toggleStartButton model =
         text "Start"
 
 
-paddTime : String -> String
-paddTime string =
+padTime : String -> String
+padTime string =
     if String.length string == 1 then
         "0" ++ string
 
@@ -111,7 +138,7 @@ paddTime string =
 viewTime : Model -> Html Msg
 viewTime model =
     text
-        ((model.currentTime |> Tuple.first |> String.fromInt |> paddTime) ++ ":" ++ (model.currentTime |> Tuple.second |> String.fromInt |> paddTime))
+        ((model.currentTime |> Tuple.first |> String.fromInt |> padTime) ++ ":" ++ (model.currentTime |> Tuple.second |> String.fromInt |> padTime))
 
 
 view : Model -> Html Msg
@@ -120,6 +147,16 @@ view model =
         [ viewTime model
         , button [ onClick ToggleTimer ] [ toggleStartButton model ]
         , button [ onClick ResetTimer ] [ text "Reset" ]
+        , input
+            [ type_ "number"
+            , Html.Attributes.min "0"
+            , value
+                (model.baseTime
+                    |> String.fromInt
+                )
+            , onInput ChangeBaseTime
+            ]
+            []
         ]
 
 
