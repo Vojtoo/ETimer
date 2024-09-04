@@ -1,10 +1,18 @@
 port module Main exposing (..)
 
 import Browser
-import Html exposing (Html, button, div, input, text)
-import Html.Attributes exposing (min, type_, value)
+import Html exposing (Html, button, div, i, input, span, text)
+import Html.Attributes exposing (class, id, min, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Time exposing (every)
+
+
+
+-- CONSTANTS
+
+
+minimumTime =
+    1
 
 
 
@@ -94,23 +102,29 @@ update msg model =
             ( { model | currentTime = ( model.baseTime, 0 ), running = False }, Cmd.none )
 
         ChangeBaseTime intString ->
-            ( { model
-                | baseTime =
-                    String.toInt intString
-                        |> changeBaseTime model.baseTime
-              }
+            ( intString
+                |> String.toInt
+                |> changeBaseTime model
             , Cmd.none
             )
 
 
-changeBaseTime : Int -> Maybe Int -> Int
-changeBaseTime oldBaseTime mInt =
+changeBaseTime : Model -> Maybe Int -> Model
+changeBaseTime model mInt =
     case mInt of
         Nothing ->
-            oldBaseTime
+            model
 
         Just a ->
-            a
+            if a >= minimumTime then
+                if model.running == False then
+                    { model | baseTime = a, currentTime = ( a, 0 ) }
+
+                else
+                    { model | baseTime = a }
+
+            else
+                model
 
 
 
@@ -138,25 +152,45 @@ padTime string =
 viewTime : Model -> Html Msg
 viewTime model =
     text
-        ((model.currentTime |> Tuple.first |> String.fromInt |> padTime) ++ ":" ++ (model.currentTime |> Tuple.second |> String.fromInt |> padTime))
+        ((model.currentTime
+            |> Tuple.first
+            |> String.fromInt
+            |> padTime
+         )
+            ++ ":"
+            ++ (model.currentTime
+                    |> Tuple.second
+                    |> String.fromInt
+                    |> padTime
+               )
+        )
 
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ viewTime model
-        , button [ onClick ToggleTimer ] [ toggleStartButton model ]
-        , button [ onClick ResetTimer ] [ text "Reset" ]
-        , input
-            [ type_ "number"
-            , Html.Attributes.min "0"
-            , value
-                (model.baseTime
-                    |> String.fromInt
-                )
-            , onInput ChangeBaseTime
+    div [ class "container-fluid vh-100 d-flex align-items-center justify-content-center" ]
+        [ div [ class "container-fluid p-0" ]
+            [ div [ class "row", id "timer-window" ]
+                [ div [ class "col-12 text-center" ]
+                    [ span [ id "time-span" ] [ viewTime model ]
+                    , div [ class "d-flex align-items-center justify-content-center" ]
+                        [ button [ class "btn timer-button", onClick ToggleTimer ] [ toggleStartButton model ]
+                        , button [ class "btn timer-button", onClick ResetTimer ] [ text "Reset" ]
+                        , i [ class "gear-icon bi bi-gear-fill" ] []
+                        , input
+                            [ type_ "number"
+                            , Html.Attributes.min "1"
+                            , value
+                                (model.baseTime
+                                    |> String.fromInt
+                                )
+                            , onInput ChangeBaseTime
+                            ]
+                            []
+                        ]
+                    ]
+                ]
             ]
-            []
         ]
 
 

@@ -1,4 +1,3 @@
-
 /*https://colorhunt.co/palette/16423c6a9c89c4dad2e9efec*/
 
 #time-span {
@@ -7,21 +6,35 @@
     font-weight: bold;
     font-size: 4rem;
 }
+
 body div.container-fluid {
     background-color: #C4DAD2;
 }
 
-#timer-window{
+#timer-window {
     background-color: #6A9C89;
 }
 
-#timer-window button{
+.timer-button {
+    margin: 10px;
+    background-color: #E9EFEC;
+}
+.timer-button:hover {
     margin: 10px;
     background-color: #E9EFEC;
 }
 
-.gear-icon{
-    color: white;
+button.btn.timer-button:active {
+    background-color: #E9EFEC;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.gear-icon {
+    color: #E9EFEC;
     font-size: 2rem;
     margin: 10px;
+}
+.gear-icon:active {
+    color: #C4DAD2;
 }
